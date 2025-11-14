@@ -24,7 +24,7 @@ Start-Job -ArgumentList $AppPath,$SourceIPPort -ScriptBlock
         [string]$SourceIPPort
     )
     Set-Location $AppPath
-    .\psping.exe -q -accepteula -s $SourceIPPort 
+    .\psping.exe -q -accepteula -f -s $SourceIPPort 
 } 
 
 

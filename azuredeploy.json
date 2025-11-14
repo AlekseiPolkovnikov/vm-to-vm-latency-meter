@@ -191,16 +191,30 @@
       "properties": {
         "securityRules": [
           {
-            "name": "web-rule",
+            "name": "allow-probe-rule",
             "properties": {
-              "description": "Allow Web",
+              "description": "Allow Probe",
               "protocol": "Tcp",
               "sourcePortRange": "*",
-              "destinationPortRange": "80",
+              "destinationPortRange": "*",
               "sourceAddressPrefix": "[reference(resourceId('Microsoft.Network/publicIPAddresses', concat(variables('publicIPAddressName'), '1'))).ipAddress]",
               "destinationAddressPrefix": "*",
               "access": "Allow",
               "priority": 101,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "allow-target-rule",
+            "properties": {
+              "description": "Allow Target",
+              "protocol": "Tcp",
+              "sourcePortRange": "*",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "[reference(resourceId('Microsoft.Network/publicIPAddresses', concat(variables('publicIPAddressName'), '2'))).ipAddress]",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 102,
               "direction": "Inbound"
             }
           }
@@ -236,7 +250,7 @@
             }
           }
         ],
-        "networkSecurityGroup": "[if(equals(copyIndex(),1), variables('nsgId'), json('null'))]"
+        "networkSecurityGroup": "[variables('nsgId')]"
       }
     },
     {
@@ -296,7 +310,7 @@
           "fileUris": [
             "https://raw.githubusercontent.com/AlekseiPolkovnikov/vm-to-vm-latency-meter/refs/heads/master/testLatency.ps1"
           ],
-          "commandToExecute": "[concat('timeout /t 5 /nobreak > nul & powershell -ExecutionPolicy Unrestricted -File ', variables('ScriptTestFileName'), ' -TestIPPort ', reference(resourceId('Microsoft.Network/publicIPAddresses', concat(variables('publicIPAddressName'), '1'))).ipAddress, ':80 -TestNumber ', parameters('testRequestCount'), ' -PacketSize ', parameters('testRequestSize'))]"
+          "commandToExecute": "[concat('timeout /t 10 /nobreak > nul & powershell -ExecutionPolicy Unrestricted -File ', variables('ScriptTestFileName'), ' -TestIPPort ', reference(resourceId('Microsoft.Network/publicIPAddresses', concat(variables('publicIPAddressName'), '1'))).ipAddress, ':12450 -TestNumber ', parameters('testRequestCount'), ' -PacketSize ', parameters('testRequestSize'))]"
         }
       }
     },
@@ -318,7 +332,7 @@
           "fileUris": [
             "https://raw.githubusercontent.com/AlekseiPolkovnikov/vm-to-vm-latency-meter/refs/heads/master/listenLatency.ps1"
           ],
-          "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File ', variables('ScriptListenFileName'), ' -SourceIPPort ', reference(resourceId('Microsoft.Network/publicIPAddresses', concat(variables('publicIPAddressName'), '2'))).ipAddress, ':80')]"
+          "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File ', variables('ScriptListenFileName'), ' -SourceIPPort 0.0.0.0:12450')]"
         }
       }
     }
