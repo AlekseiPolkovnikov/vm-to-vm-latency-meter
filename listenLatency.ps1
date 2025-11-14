@@ -17,8 +17,7 @@ if (!(Test-Path $AppPath)){
 }
 
 
-Start-Job -ArgumentList $AppPath,$SourceIPPort -ScriptBlock 
-{
+Start-Job -ArgumentList $AppPath,$SourceIPPort -ScriptBlock {
     Param (
         [string]$AppPath,
         [string]$SourceIPPort
