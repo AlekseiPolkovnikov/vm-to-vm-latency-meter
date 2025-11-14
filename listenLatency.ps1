@@ -16,7 +16,15 @@ if (!(Test-Path $AppPath)){
     Remove-Item $PsToolsArchive 
 }
 
-Set-Location $AppPath
-$latency = .\psping.exe -q -accepteula -s $SourceIPPort
+
+Start-Job -ScriptBlock 
+{
+    param (
+        [string]$AppPath,
+        [string]$SourceIPPort
+    )
+    Set-Location $AppPath
+    .\psping.exe -q -accepteula -s $SourceIPPort 
+} -ArgumentList $AppPath, $SourceIPPort
 
 

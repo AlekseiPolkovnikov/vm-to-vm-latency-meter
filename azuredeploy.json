@@ -4,7 +4,7 @@
   "parameters": {
     "probeVmSize": {
       "type": "string",
-      "defaultValue": "Standard_D2_v5",
+      "defaultValue": "Standard_A4_v2",
       "metadata": {
         "description": "Size of the VM that runs the test."
       }
@@ -30,7 +30,7 @@
     },
     "targetVmSize": {
       "type": "string",
-      "defaultValue": "Standard_D2_v5",
+      "defaultValue": "Standard_A4_v2",
       "metadata": {
         "description": "Size of the target VM."
       }
@@ -112,9 +112,9 @@
         "zone": "[parameters('targetVmAZ')]",
         "size": "[parameters('targetVmSize')]",
         "imageReference": {
-          "publisher": "Canonical",
-          "offer": "0001-com-ubuntu-server-jammy",
-          "sku": "22_04-lts",
+          "publisher": "MicrosoftWindowsServer",
+          "offer": "WindowsServer",
+          "sku": "2019-Datacenter",
           "version": "latest"
         },
         "subnetRef": "[resourceId('Microsoft.Network/virtualNetworks/subnets', concat(variables('virtualNetworkName'), '2'), variables('subnetName'))]"
@@ -280,12 +280,34 @@
     {
       "type": "Microsoft.Compute/virtualMachines/extensions",
       "apiVersion": "2019-12-01",
-      "name": "[concat(variables('vmSettings')[0].name, '/CustomScriptExtension')]",
+      "name": "[concat(variables('vmSettings')[0].name, '/ProveVMCustomScriptExtension')]",
       "location": "[variables('vmSettings')[0].location]",
       "dependsOn": [
         "[resourceId('Microsoft.Compute/virtualMachines', variables('vmSettings')[0].name)]",
         "publicIpCopy",
-        "[resourceId('Microsoft.Compute/virtualMachines/extensions', variables('vmSettings')[0].name, 'TargetVmCustomScriptExtension')]"
+        "[resourceId('Microsoft.Compute/virtualMachines/extensions', variables('vmSettings')[1].name, 'TargetVmCustomScriptExtension')]"
+      ],
+      "properties": {
+        "publisher": "Microsoft.Compute",
+        "type": "CustomScriptExtension",
+        "typeHandlerVersion": "1.8",
+        "autoUpgradeMinorVersion": true,
+        "settings": {
+          "fileUris": [
+            "https://raw.githubusercontent.com/AlekseiPolkovnikov/vm-to-vm-latency-meter/refs/heads/master/testLatency.ps1"
+          ],
+          "commandToExecute": "[concat('timeout /t 5 /nobreak > nul & powershell -ExecutionPolicy Unrestricted -File ', variables('ScriptTestFileName'), ' -TestIPPort ', reference(resourceId('Microsoft.Network/publicIPAddresses', concat(variables('publicIPAddressName'), '1'))).ipAddress, ':80 -TestNumber ', parameters('testRequestCount'), ' -PacketSize ', parameters('testRequestSize'))]"
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "apiVersion": "2019-12-01",
+      "name": "[concat(variables('vmSettings')[1].name, '/TargetVmCustomScriptExtension')]",
+      "location": "[variables('vmSettings')[1].location]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Compute/virtualMachines', variables('vmSettings')[1].name)]",
+        "publicIpCopy"
       ],
       "properties": {
         "publisher": "Microsoft.Compute",
@@ -296,39 +318,15 @@
           "fileUris": [
             "https://raw.githubusercontent.com/AlekseiPolkovnikov/vm-to-vm-latency-meter/refs/heads/master/testLatencyServer.ps1"
           ],
-          "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File ', variables('ScriptListenFileName'), ' -SourceIPPort ', reference(resourceId('Microsoft.Network/publicIPAddresses', concat(variables('publicIPAddressName'), '2'))).ipAddress, ':80 -TestNumber ')]"
+          "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File ', variables('ScriptListenFileName'), ' -SourceIPPort ', reference(resourceId('Microsoft.Network/publicIPAddresses', concat(variables('publicIPAddressName'), '2'))).ipAddress, ':80')]"
         }
       }
-    },
-    {
-      {
-        "type": "Microsoft.Compute/virtualMachines/extensions",
-        "apiVersion": "2019-12-01",
-        "name": "[concat(variables('vmSettings')[1].name, '/CustomScriptExtension')]",
-        "location": "[variables('vmSettings')[1].location]",
-        "dependsOn": [
-          "[resourceId('Microsoft.Compute/virtualMachines', variables('vmSettings')[1].name)]",
-          "publicIpCopy",
-          "[resourceId('Microsoft.Compute/virtualMachines/extensions', variables('vmSettings')[1].name, 'TargetVmCustomScriptExtension')]"
-        ],
-        "properties": {
-          "publisher": "Microsoft.Compute",
-          "type": "CustomScriptExtension",
-          "typeHandlerVersion": "1.8",
-          "autoUpgradeMinorVersion": true,
-          "settings": {
-            "fileUris": [
-              "https://raw.githubusercontent.com/AlekseiPolkovnikov/vm-to-vm-latency-meter/refs/heads/master/testLatency.ps1"
-            ],
-            "commandToExecute": "[concat('timeout /t 5 /nobreak > nul & powershell -ExecutionPolicy Unrestricted -File ', variables('ScriptTestFileName'), ' -TestIPPort ', reference(resourceId('Microsoft.Network/publicIPAddresses', concat(variables('publicIPAddressName'), '1'))).ipAddress, ':80 -TestNumber ', parameters('testRequestCount'), ' -PacketSize ', parameters('testRequestSize'))]"
-          }
-        }
-      }
+    }
   ],
   "outputs": {
     "latencytestresult": {
       "type": "string",
-      "value": "[trim(reference('CustomScriptExtension').instanceView.substatuses[0].message)]"
+      "value": "[trim(reference('ProveVMCustomScriptExtension').instanceView.substatuses[0].message)]"
     }
   }
 }
