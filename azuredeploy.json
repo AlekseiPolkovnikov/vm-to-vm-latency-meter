@@ -127,7 +127,8 @@
     "publicIPAddressName": "publicIP",
     "publicIPAddressType": "Static",
     "virtualNetworkName": "testVNET",
-    "scriptFileName": "testLatency.ps1",
+    "scriptTestFileName": "testLatency.ps1",
+    "scriptListenFileName": "listenLatency.ps1",
     "frontEndNSGName": "[concat('webtestnsg-', uniqueString(resourceGroup().id))]",
     "nsgId": {
       "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('frontEndNSGName'))]"
@@ -284,7 +285,7 @@
       "dependsOn": [
         "[resourceId('Microsoft.Compute/virtualMachines', variables('vmSettings')[0].name)]",
         "publicIpCopy",
-        "[resourceId('Microsoft.Compute/virtualMachines/extensions', variables('vmSettings')[1].name, 'TargetVmCustomScriptExtension')]"
+        "[resourceId('Microsoft.Compute/virtualMachines/extensions', variables('vmSettings')[0].name, 'TargetVmCustomScriptExtension')]"
       ],
       "properties": {
         "publisher": "Microsoft.Compute",
@@ -293,30 +294,36 @@
         "autoUpgradeMinorVersion": true,
         "settings": {
           "fileUris": [
-            "https://raw.githubusercontent.com/AlekseiPolkovnikov/vm-to-vm-latency-meter/refs/heads/master/testLatency.ps1"
+            "https://raw.githubusercontent.com/AlekseiPolkovnikov/vm-to-vm-latency-meter/refs/heads/master/testLatencyServer.ps1"
           ],
-          "commandToExecute": "[concat('timeout /t 5 /nobreak > nul & powershell -ExecutionPolicy Unrestricted -File ', variables('ScriptFileName'), ' -TestIPPort ', reference(resourceId('Microsoft.Network/publicIPAddresses', concat(variables('publicIPAddressName'), '2'))).ipAddress, ':80 -TestNumber ', parameters('testRequestCount'), ' -PacketSize ', parameters('testRequestSize'))]"
+          "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File ', variables('ScriptListenFileName'), ' -SourceIPPort ', reference(resourceId('Microsoft.Network/publicIPAddresses', concat(variables('publicIPAddressName'), '2'))).ipAddress, ':80 -TestNumber ')]"
         }
       }
     },
     {
-      "type": "Microsoft.Compute/virtualMachines/extensions",
-      "name": "[concat(variables('vmSettings')[1].name, '/TargetVmCustomScriptExtension')]",
-      "apiVersion": "2019-12-01",
-      "location": "[variables('vmSettings')[1].location]",
-      "dependsOn": [
-        "[resourceId('Microsoft.Compute/virtualMachines', variables('vmSettings')[1].name)]"
-      ],
-      "properties": {
-        "publisher": "Microsoft.Azure.Extensions",
-        "type": "CustomScript",
-        "typeHandlerVersion": "2.0",
-        "autoUpgradeMinorVersion": true,
-        "settings": {
-          "commandToExecute": "sudo bash -c 'add-apt-repository main && add-apt-repository universe && apt-get -y update && apt-get -y install apache2'"
+      {
+        "type": "Microsoft.Compute/virtualMachines/extensions",
+        "apiVersion": "2019-12-01",
+        "name": "[concat(variables('vmSettings')[1].name, '/CustomScriptExtension')]",
+        "location": "[variables('vmSettings')[1].location]",
+        "dependsOn": [
+          "[resourceId('Microsoft.Compute/virtualMachines', variables('vmSettings')[1].name)]",
+          "publicIpCopy",
+          "[resourceId('Microsoft.Compute/virtualMachines/extensions', variables('vmSettings')[1].name, 'TargetVmCustomScriptExtension')]"
+        ],
+        "properties": {
+          "publisher": "Microsoft.Compute",
+          "type": "CustomScriptExtension",
+          "typeHandlerVersion": "1.8",
+          "autoUpgradeMinorVersion": true,
+          "settings": {
+            "fileUris": [
+              "https://raw.githubusercontent.com/AlekseiPolkovnikov/vm-to-vm-latency-meter/refs/heads/master/testLatency.ps1"
+            ],
+            "commandToExecute": "[concat('timeout /t 5 /nobreak > nul & powershell -ExecutionPolicy Unrestricted -File ', variables('ScriptTestFileName'), ' -TestIPPort ', reference(resourceId('Microsoft.Network/publicIPAddresses', concat(variables('publicIPAddressName'), '1'))).ipAddress, ':80 -TestNumber ', parameters('testRequestCount'), ' -PacketSize ', parameters('testRequestSize'))]"
+          }
         }
       }
-    }
   ],
   "outputs": {
     "latencytestresult": {
