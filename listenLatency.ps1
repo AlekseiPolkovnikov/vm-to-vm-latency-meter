@@ -17,14 +17,14 @@ if (!(Test-Path $AppPath)){
 }
 
 
-Start-Job -ScriptBlock 
+Start-Job -ArgumentList $AppPath,$SourceIPPort -ScriptBlock 
 {
-    param (
+    Param (
         [string]$AppPath,
         [string]$SourceIPPort
     )
     Set-Location $AppPath
     .\psping.exe -q -accepteula -s $SourceIPPort 
-} -ArgumentList $AppPath, $SourceIPPort
+} 
 
 

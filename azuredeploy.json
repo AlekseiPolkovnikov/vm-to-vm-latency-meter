@@ -280,7 +280,7 @@
     {
       "type": "Microsoft.Compute/virtualMachines/extensions",
       "apiVersion": "2019-12-01",
-      "name": "[concat(variables('vmSettings')[0].name, '/ProveVMCustomScriptExtension')]",
+      "name": "[concat(variables('vmSettings')[0].name, '/ProbeVMCustomScriptExtension')]",
       "location": "[variables('vmSettings')[0].location]",
       "dependsOn": [
         "[resourceId('Microsoft.Compute/virtualMachines', variables('vmSettings')[0].name)]",
@@ -316,7 +316,7 @@
         "autoUpgradeMinorVersion": true,
         "settings": {
           "fileUris": [
-            "https://raw.githubusercontent.com/AlekseiPolkovnikov/vm-to-vm-latency-meter/refs/heads/master/testLatencyServer.ps1"
+            "https://raw.githubusercontent.com/AlekseiPolkovnikov/vm-to-vm-latency-meter/refs/heads/master/listenLatency.ps1"
           ],
           "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File ', variables('ScriptListenFileName'), ' -SourceIPPort ', reference(resourceId('Microsoft.Network/publicIPAddresses', concat(variables('publicIPAddressName'), '2'))).ipAddress, ':80')]"
         }
@@ -326,7 +326,7 @@
   "outputs": {
     "latencytestresult": {
       "type": "string",
-      "value": "[trim(reference('ProveVMCustomScriptExtension').instanceView.substatuses[0].message)]"
+      "value": "[trim(reference('ProbeVMCustomScriptExtension').instanceView.substatuses[0].message)]"
     }
   }
 }
