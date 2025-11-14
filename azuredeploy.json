@@ -73,7 +73,7 @@
     },
     "testRequestCount": {
       "type": "int",
-      "defaultValue": 50,
+      "defaultValue": 100,
       "metadata": {
         "description": "Number of the requests to send to the target VM."
       }
