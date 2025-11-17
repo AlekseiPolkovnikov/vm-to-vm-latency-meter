@@ -20,6 +20,9 @@
     "testRequestSize": {
       "value": "32k"
     },
+    "testRequestCount": {
+      "value": 10000
+    },
     "testPort": {
       "value": 12451
     }
