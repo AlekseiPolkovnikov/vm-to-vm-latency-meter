@@ -1,0 +1,39 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "adminUsername": {
+      "value": "adminLatencyTest"
+    },
+    "adminPassword": {
+      "value": "<ENTER_PASSWORD>"
+    },
+    "probeVmLocation": {
+      "value": "eastus2"
+    },
+    "probeVmAZ": {
+      "value": 1
+    },
+    "targetVmLocation": {
+      "value": "eastus2"
+    },
+    "targetVmAZ": {
+      "value": 2
+    },
+    "probeVmSize": {
+      "value": "Standard_D2_v5"
+    },
+    "targetVmSize": {
+      "value": "Standard_D2_v5"
+    },
+    "testRequestSize": {
+      "value": "32k"
+    },
+    "testRequestCount": {
+      "value": 1000
+    },
+    "testPort": {
+      "value": 12451
+    }
+  }
+}
