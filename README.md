@@ -25,7 +25,12 @@ OutputsString           :
                           latencytestresult  String                     Latency: Minimum = 0.89ms, Maximum = 3.90ms, Average = 1.25ms
 ```
 
-![alt text](images/bandwidth.png "Latency measurement output")
+Running Azure CLI locally from command line and extracting the output (example for EastUS2 AZ1 to AZ2):
+
+```powershell
+(az deployment group create --name <DEPLOYMENT_NAME> --resource-group <RESOURCE_GROUP> --template-file azuredeploy.json --parameters eastus2az1az2.parameters.json  adminPassword=<ENTER_PASSWORD> | ConvertFrom-Json).properties.outputs.latencytestresult.value
+Latency: Minimum = 0.20ms, Maximum = 3.78ms, Average = 0.25ms
+```
 
 To re-measure the latency you can login to the probe VM with credentials you provided during deployment.
 
