@@ -33,6 +33,11 @@ Latency: Minimum = 0.20ms, Maximum = 3.78ms, Average = 0.25ms
 ```
 
 To re-measure the latency you can login to the probe VM with credentials you provided during deployment.
+You can copy [this script](https://raw.githubusercontent.com/AlekseiPolkovnikov/vm-to-vm-latency-meter/refs/heads/master/testLatency.ps1) to probe VM and run it like this (test server is already running/listening on the target VM):
+
+```cmd
+powershell -ExecutionPolicy Unrestricted -File testLatency.ps1 -TestIPPort <TARGET_IP>:<TEST_PORT> -TestNumber <REQUEST_COUNT> -PacketSize <PACKET_SIZE>
+```
 
 In case you don't need to re-measure, it is safe to delete the created resource group.
 
